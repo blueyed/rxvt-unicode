@@ -938,39 +938,42 @@ rxvt_term::scr_add_lines (const wchar_t *str, int len, int minlines) NOTHROW
 
           rend_t rend;
 #if ENABLE_WIDE_GLYPHS
-          // Re-use previous font for space characters.
+          // Re-use previous style for space characters.
           // This allows for better display of wider chars with regard to
           // backtracking (which uses RS_SAME).
-          if (c != ' ') {
+          if (c != ' ')
+            {
 #endif
             rend = SET_FONT (rstyle, FONTSET (rstyle)->find_font (c));
 #if ENABLE_WIDE_GLYPHS
 
-          } else {
-            // Code taken from ENABLE_COMBINING - might get refactored.
-            line_t *linep;
-            text_t *tp;
-            rend_t *rp = NULL;
+            }
+          else
+            {
+              // Code taken from ENABLE_COMBINING - might get refactored.
+              line_t *linep;
+              text_t *tp;
+              rend_t *rp = NULL;
 
-            if (screen.cur.col > 0)
-              {
-                linep = line;
-                tp = line->t + screen.cur.col - 1;
-                rp = line->r + screen.cur.col - 1;
-              }
-            else if (screen.cur.row > 0
-                     && ROW(screen.cur.row - 1).is_longer ())
-              {
-                linep = &ROW(screen.cur.row - 1);
-                tp = line->t + ncol - 1;
-                rp = line->r + ncol - 1;
-              }
+              if (screen.cur.col > 0)
+                {
+                  linep = line;
+                  tp = line->t + screen.cur.col - 1;
+                  rp = line->r + screen.cur.col - 1;
+                }
+              else if (screen.cur.row > 0
+                       && ROW(screen.cur.row - 1).is_longer ())
+                {
+                  linep = &ROW(screen.cur.row - 1);
+                  tp = line->t + ncol - 1;
+                  rp = line->r + ncol - 1;
+                }
 
-            if (rp)
-                rend = SET_FONT (rstyle, GET_FONT(*rp));
-            else
-                rend = SET_FONT (rstyle, FONTSET (rstyle)->find_font (c));
-          }
+              if (rp)
+                  rend = SET_FONT (rstyle, GET_FONT(*rp));
+              else
+                  rend = SET_FONT (rstyle, FONTSET (rstyle)->find_font (c));
+            }
 #endif
 
           // if the character doesn't fit into the remaining columns...
