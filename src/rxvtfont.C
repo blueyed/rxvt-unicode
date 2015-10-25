@@ -1404,8 +1404,10 @@ rxvt_font_xft::draw (rxvt_drawable &d, int x, int y,
           ep->glyph = glyph;
           ep->x = x_ + (cwidth - extents.xOff >> 1);
 #if ENABLE_WIDE_GLYPHS
-          /* Left-align to bounding box, do not overlap to the left. */
-          max_it(ep->x, x_);
+          /* Left-align to bounding box, to not overlap to the left. */
+          /* But only for glyphs that take >= 2 cells, not a bold 8 for example. */
+          if (extents.xOff >= term->fwidth*2)
+            max_it(ep->x, x_);
 #endif
           ep->y = y_ + ascent;
 
