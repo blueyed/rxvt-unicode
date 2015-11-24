@@ -972,6 +972,19 @@ rxvt_term::scr_add_lines (const wchar_t *str, int len, int minlines) NOTHROW
               if (rp)
                 {
                   // XXX: this font does not show up in iso-14755 mode for the space!?
+                  if (*tp == NOCHAR)
+                    {
+                      while (*tp == NOCHAR && tp > linep->t)
+                        tp--, rp--;
+
+                      // first try to find a precomposed character
+                      unicode_t n = rxvt_compose (*tp, c);
+                      if (n == NOCHAR)
+                        n = rxvt_composite.compose (*tp, c);
+
+                      *tp = n;
+                      *rp = SET_FONT (*rp, FONTSET (*rp)->find_font (*tp));
+                    }
                   rend = SET_FONT (rstyle, GET_FONT(*rp));
                 }
               else
