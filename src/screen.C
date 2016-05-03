@@ -965,8 +965,8 @@ rxvt_term::scr_add_lines (const wchar_t *str, int len, int minlines) NOTHROW
                        && ROW(screen.cur.row - 1).is_longer ())
                 {
                   linep = &ROW(screen.cur.row - 1);
-                  tp = line->t + ncol - 1;
-                  rp = line->r + ncol - 1;
+                  tp = linep->t + ncol - 1;
+                  rp = linep->r + ncol - 1;
                 }
 
               if (rp)
