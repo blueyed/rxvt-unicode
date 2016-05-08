@@ -1791,6 +1791,9 @@ rxvt_term::focus_in ()
         set_urgency (0);
 #endif
 
+      if (priv_modes & PrivMode_FocusReporting)
+        tt_printf ("\x1b[I");
+
       HOOK_INVOKE ((this, HOOK_FOCUS_IN, DT_END));
     }
 }
@@ -1833,6 +1836,9 @@ rxvt_term::focus_out ()
           scr_recolor ();
         }
 #endif
+
+      if (priv_modes & PrivMode_FocusReporting)
+        tt_printf ("\x1b[O");
 
       HOOK_INVOKE ((this, HOOK_FOCUS_OUT, DT_END));
     }
@@ -3708,6 +3714,7 @@ rxvt_term::process_terminal_mode (int mode, int priv ecb_unused, unsigned int na
                   { 1000, PrivMode_MouseX11 },
                   { 1002, PrivMode_MouseBtnEvent },
                   { 1003, PrivMode_MouseAnyEvent },
+                  { 1004, PrivMode_FocusReporting },
 #if ENABLE_FRILLS
                   { 1005, PrivMode_ExtModeMouse },
 #endif
