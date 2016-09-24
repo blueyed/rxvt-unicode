@@ -2441,12 +2441,12 @@ rxvt_term::scr_refresh () NOTHROW
                 text--, count++, xpixel -= fwidth;
 
               // force redraw after "careful" characters to avoid pixel droppings
-              for (int i = 0;
+              for (int i = 0; srp[col + i] & RS_Careful && col + i < ncol - 1
 #if ENABLE_WIDE_GLYPHS
               // But not for spaces.
-                      stp[col + i + 1] != ' ' &&
+                      && stp[col + i + 1] != ' '
 #endif
-                      srp[col + i] & RS_Careful && col + i < ncol - 1; i++)
+                      ; i++)
                 drp[col + i + 1] = srp[col + i + 1] ^ RS_redraw;
 
               // force redraw before "careful" characters to avoid pixel droppings
