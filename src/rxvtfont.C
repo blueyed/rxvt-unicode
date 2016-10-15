@@ -1337,10 +1337,6 @@ rxvt_font_xft::has_char (unicode_t unicode, const rxvt_fontprop *prop, bool &car
   if (!prop || prop->width == rxvt_fontprop::unset)
     return true;
 
-#if ENABLE_WIDE_GLYPHS
-  return true;
-#endif
-
   // check character against base font bounding box
   FcChar32 ch = unicode;
   XGlyphInfo g;
@@ -1351,12 +1347,14 @@ rxvt_font_xft::has_char (unicode_t unicode, const rxvt_fontprop *prop, bool &car
 
   careful = g.x > 0 || w > prop->width * wcw;
 
+#if !ENABLE_WIDE_GLYPHS
   if (careful && !OVERLAP_OK (w, wcw, prop))
     return false;
 
   // this weeds out _totally_ broken fonts, or glyphs
   if (!OVERLAP_OK (g.xOff, wcw, prop))
     return false;
+#endif
 
   return true;
 }
