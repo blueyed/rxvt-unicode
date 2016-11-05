@@ -1362,7 +1362,7 @@ rxvt_font_xft::has_char (unicode_t unicode, const rxvt_fontprop *prop, bool &car
   XftTextExtents32 (term->dpy, f, &ch, 1, &g);
 
   int w = g.width - g.x;
-  int wcw = max (WCWIDTH (unicode), 1);
+  int wcw = max (rxvt_wcwidth (unicode), 1);
 
   careful = g.x > 0 || w > prop->width * wcw;
 
