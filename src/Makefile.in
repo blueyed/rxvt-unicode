@@ -20,7 +20,8 @@ CXXFLAGS = @CXXFLAGS@
 CPPFLAGS = @CPPFLAGS@
 LDFLAGS = @LDFLAGS@
 DEFS = @DEFS@
-LIBS = @LIBS@
+# XXX: -lstdc for std::map (probably not necessary after all, when using another cache method)
+LIBS = -lstdc++ @LIBS@
 XINC = @X_CFLAGS@ @PIXBUF_CFLAGS@ @STARTUP_NOTIFICATION_CFLAGS@
 XLIB = @X_LIBS@ -lX11 @X_EXTRA_LIBS@ @PIXBUF_LIBS@ @STARTUP_NOTIFICATION_LIBS@
 COMPILE = $(CXX) -I.. -I$(srcdir) -I. -I$(srcdir)/../libev -I$(srcdir)/../libptytty/src $(DEFS) $(CPPFLAGS) $(CXXFLAGS) $(XINC)
@@ -146,9 +147,10 @@ rxvtperl.C: rxvtperl.xs iom_perl.h iom_perl.xs typemap typemap.iom
 rxvtperl.o: rxvtperl.C perlxsi.c
 	$(COMPILE) $(PERLFLAGS) -DLIBDIR="\"$(libdir)/urxvt\"" -c $<
 
+# TODO: verify/check options!
+# $(COMPILE) -fPIC -frtti -ldl -lrt -shared -rdynamic -o $@ $<
 rxvtwcwidth.so: rxvtwcwidth.C
-	$(COMPILE) -frtti -ldl -lrt -shared -rdynamic -o $@ $<
-
+	$(COMPILE) -fPIC -ldl -shared -o $@ $<
 
 depend:
 	makedepend -f Makefile.in -I. -I.. -I../libptytty/src -I../libev -Y *.C *.xs >/dev/null 2>&1
