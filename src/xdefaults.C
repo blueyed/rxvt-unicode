@@ -379,6 +379,7 @@ static const char optionsstring[] = "options: "
 #if defined(XTERM_SCROLLBAR)
                                     "+xterm"
 #endif
+                                    "+wcwidthcallback"
                                     "\nUsage: ";		/* Usage */
 
 #define INDENT 28
