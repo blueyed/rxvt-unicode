@@ -970,12 +970,21 @@ rxvt_term::scr_add_lines (const wchar_t *str, int len, int minlines) NOTHROW
                 screen.cur.col = ncol - width;
             }
 
-          // nuke the character at this position, if required
-          // due to wonderful coincidences everywhere else in this loop
-          // we never have to check for overwriting a wide char itself,
-          // only its tail.
-          if (ecb_unlikely (line->t[screen.cur.col] == NOCHAR))
-            scr_kill_char (*line, screen.cur.col);
+          // Handle wide characters at this position, if required.
+          // This used to nuke the wide char, but since only we might consider
+          // it to be wide, this will mark the wide char for redrawing.
+          // This works around Vim not displaying wide glyphs properly / at all
+          // when not using LD_PRELOAD/wcwidth!
+          // Eventually Vim writes a single space after a glyph, which would
+          // then cause the wide char (before it) to be nuked, although Vim
+          // only meant to set the space.
+          // TODO: improve this, based on if rxvt-unicode's get_wcwidth and
+          //       wcwidth disagree?!  (but still no guarantee that wcwidth is
+          //       used, e.g. Vim uses its own method by default).
+          //       There could also be special handling for Space here.
+          if (ecb_unlikely (line->t[screen.cur.col] == NOCHAR)) {
+            scr_set_char_rend (*line, screen.cur.col, rend ^ RS_redraw);
+          }
 
           line->touch ();
 
