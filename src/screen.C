@@ -28,6 +28,7 @@
 #include "../config.h"          /* NECESSARY */
 #include "rxvt.h"               /* NECESSARY */
 #include "rxvtperl.h"           /* NECESSARY */
+#include "rxvtwcwidth.h"        /* NECESSARY */
 
 #include <inttypes.h>
 
