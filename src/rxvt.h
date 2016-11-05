@@ -1173,6 +1173,11 @@ struct rxvt_term : zero_initialized, rxvt_vars, rxvt_screen
 
   long vt_emask, vt_emask_perl, vt_emask_xim, vt_emask_mouse;
 
+  int wcwidth_data_socket;
+  char * wcwidth_socket_name;
+  int wcwidth_socket_fd;
+  time_t wcwidth_last_request;
+
   void vt_select_input () const NOTHROW
   {
     XSelectInput (dpy, vt, vt_emask | vt_emask_perl | vt_emask_xim | vt_emask_mouse);
@@ -1197,6 +1202,8 @@ struct rxvt_term : zero_initialized, rxvt_vars, rxvt_screen
   void cmdbuf_append (const char *str, size_t count);
   bool pty_fill ();
   void pty_cb (ev::io &w, int revents); ev::io pty_ev;
+  void wcwidth_cb (ev::io &w, int revents); ev::io wcwidth_ev;
+  void wcwidth_reply_cb (ev::io &w, int revents); ev::io wcwidth_reply_ev;
 
 #ifdef CURSOR_BLINK
   void cursor_blink_reset ();
@@ -1473,6 +1480,8 @@ struct rxvt_term : zero_initialized, rxvt_vars, rxvt_screen
     enumerate_resources (cb, "keysym", "Keysym");
   }
   void extract_keysym_resources ();
+
+  int rxvt_wcwidth(wchar_t c);
 };
 
 #endif /* _RXVT_H_ */

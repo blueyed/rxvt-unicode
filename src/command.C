@@ -62,6 +62,10 @@
 # include <time.h>
 #endif
 
+// TODO: ifdef
+#include <sys/socket.h>
+#include <sys/un.h>
+
 /*----------------------------------------------------------------------*/
 
 #define IS_CONTROL(ch) !((ch) & 0xffffff60UL)
@@ -1367,6 +1371,54 @@ rxvt_term::mouse_report (XButtonEvent &ev)
               32 + x,
               32 + y);
 }
+
+void
+rxvt_term::wcwidth_cb (ev::io &w, int revents)
+{
+  int data_fd = accept(wcwidth_socket_fd, NULL, NULL);
+  if (data_fd == -1) {
+    perror("wcwidth_cb: accept");
+    return;
+  }
+  wcwidth_reply_ev.start(data_fd, ev::READ);
+}
+
+
+void
+rxvt_term::wcwidth_reply_cb (ev::io &w, int revents)
+{
+#ifdef DEBUG_WCWIDTH
+  fprintf(stderr, "wcwidth_reply_cb: %d (revents: %i)\n", w.fd, revents);
+#endif
+
+  wchar_t query;
+  int ret = recv(w.fd, &query, sizeof(wchar_t), 0);
+  if (ret == -1) {
+    perror("wcwidth_reply_cb: read");
+  } else if (ret == 0) {
+    fprintf(stderr, "no data received! Stopping!\n");
+    close(w.fd);
+    wcwidth_reply_ev.stop();
+  } else {
+    int width = rxvt_wcwidth(query);
+#ifdef DEBUG_WCWIDTH
+    fprintf(stderr, "wcwidth_reply_cb: write: %lc => %i\n", query, width);
+#endif
+
+    ret = write(w.fd, &width, sizeof(int));
+    if (ret == -1) {
+      perror("wcwidth_reply_cb: write");
+      close(w.fd);
+      wcwidth_reply_ev.stop();
+    } else {
+      close(w.fd);
+    }
+#ifdef DEBUG_WCWIDTH
+    fprintf(stderr, "wcwidth_reply_cb: %lc => %i\n", query, width);
+#endif
+  }
+}
+
 
 /*{{{ process an X event */
 void ecb_hot

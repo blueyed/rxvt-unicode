@@ -185,6 +185,8 @@ rxvt_term::rxvt_term ()
   flush_ev.set            <rxvt_term, &rxvt_term::flush_cb>   (this);
   destroy_ev.set          <rxvt_term, &rxvt_term::destroy_cb> (this);
   pty_ev.set              <rxvt_term, &rxvt_term::pty_cb>     (this);
+  wcwidth_ev.set          <rxvt_term, &rxvt_term::wcwidth_cb> (this);
+  wcwidth_reply_ev.set    <rxvt_term, &rxvt_term::wcwidth_reply_cb> (this);
   termwin_ev.set          <rxvt_term, &rxvt_term::x_cb>       (this);
   vt_ev.set               <rxvt_term, &rxvt_term::x_cb>       (this);
 
@@ -297,6 +299,9 @@ void
 rxvt_term::child_cb (ev::child &w, int status)
 {
   HOOK_INVOKE ((this, HOOK_CHILD_EXIT, DT_INT, status, DT_END));
+
+  close(wcwidth_socket_fd);
+  unlink(wcwidth_socket_name);
 
   cmd_pid = 0;
 

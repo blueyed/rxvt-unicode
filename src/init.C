@@ -65,6 +65,9 @@
 # include <libsn/sn-launchee.h>
 #endif
 
+#include <sys/socket.h>
+#include <sys/un.h>
+
 #ifdef DISPLAY_IS_IP
 /* On Solaris link with -lsocket and -lnsl */
 #include <sys/types.h>
@@ -1556,6 +1559,50 @@ rxvt_term::run_command (const char *const *argv)
     return;
 #endif
 
+  // TODO: use hash based on fontsets?!
+  //       hook into daemon?!
+  const char * socket_basename = "/tmp/.rxvtwcwidth";
+  int pid = getpid();
+  int len = snprintf(NULL, 0, "%s.%i", socket_basename, pid);
+  wcwidth_socket_name = (char *)rxvt_malloc (len);
+  sprintf (wcwidth_socket_name, "%s.%i", socket_basename, pid);
+  unlink(wcwidth_socket_name);
+
+  wcwidth_socket_fd = socket(AF_UNIX, SOCK_SEQPACKET, 0);
+#ifdef DEBUG_WCWIDTH
+  fprintf(stderr, "Creating socket: %d: %s\n", wcwidth_socket_fd, wcwidth_socket_name);
+#endif
+  if (wcwidth_socket_fd == -1) {
+    perror("Could not create wcwidth socket");
+    exit(EXIT_FAILURE);
+  }
+
+  int flags;
+  flags = fcntl(wcwidth_socket_fd, F_GETFL);
+  flags |= O_NONBLOCK;
+  fcntl(wcwidth_socket_fd, F_SETFL, flags);
+
+  struct sockaddr_un name;
+  name.sun_family = AF_UNIX;
+  strcpy(name.sun_path, wcwidth_socket_name);
+  len = strlen(name.sun_path) + sizeof(name.sun_family);
+
+  int ret = bind(wcwidth_socket_fd, (const struct sockaddr *) &name,
+      sizeof(struct sockaddr_un));
+  if (ret == -1) {
+    perror("Could not bind wcwidth socket");
+    exit(EXIT_FAILURE);
+  }
+
+  ret = listen(wcwidth_socket_fd, 20);
+  if (ret == -1) {
+    perror("Could not listen on wcwidth socket");
+    exit(EXIT_FAILURE);
+  }
+
+  wcwidth_ev.start (wcwidth_socket_fd, ev::READ);
+
+
   /* spin off the command interpreter */
   switch (cmd_pid = fork ())
     {
@@ -1566,6 +1613,13 @@ rxvt_term::run_command (const char *const *argv)
         }
       case 0:
         init_env ();
+
+        // XXX: move to rxvt_term::init_env?!
+        char *val;
+        char *env_socket;
+        env_socket = (char *)rxvt_malloc (snprintf(NULL, 0, "%s", wcwidth_socket_name) + 19);
+        sprintf (env_socket, "RXVT_WCWIDTH_SOCKET=%s", wcwidth_socket_name);
+        putenv (env_socket);
 
         if (!pty->make_controlling_tty ())
           fprintf (stderr, "%s: could not obtain control of tty.", RESNAME);

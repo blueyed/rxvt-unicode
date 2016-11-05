@@ -327,6 +327,12 @@ struct rxvt_font_default : rxvt_font {
     return false;
   }
 
+  int
+  get_wcwidth (unicode_t unicode)
+  {
+    return WCWIDTH(unicode);
+  }
+
   void draw (rxvt_drawable &d, int x, int y,
              const text_t *text, int len,
              int fg, int bg);
@@ -521,6 +527,14 @@ struct rxvt_font_overflow : rxvt_font {
     return false;
   }
 
+  /* XXX: never used (only in my setup?!), but needs to be defined. */
+  int
+  get_wcwidth (unicode_t unicode)
+  {
+    int fid = fs->find_font_idx (unicode);
+    return (*fs)[fid]->get_wcwidth(unicode);
+  }
+
   void draw (rxvt_drawable &d, int x, int y,
              const text_t *text, int len,
              int fg, int bg)
@@ -551,6 +565,12 @@ struct rxvt_font_x11 : rxvt_font {
   bool load (const rxvt_fontprop &prop, bool force_prop);
 
   bool has_char (unicode_t unicode, const rxvt_fontprop *prop, bool &careful) const;
+
+  int
+  get_wcwidth (unicode_t unicode)
+  {
+    return WCWIDTH(unicode);
+  }
 
   void draw (rxvt_drawable &d, int x, int y,
              const text_t *text, int len,
@@ -1135,6 +1155,7 @@ struct rxvt_font_xft : rxvt_font {
 
   bool load (const rxvt_fontprop &prop, bool force_prop);
 
+  int get_wcwidth (unicode_t unicode);
   void draw (rxvt_drawable &d, int x, int y,
              const text_t *text, int len,
              int fg, int bg);
@@ -1353,6 +1374,17 @@ rxvt_font_xft::has_char (unicode_t unicode, const rxvt_fontprop *prop, bool &car
     return false;
 
   return true;
+}
+
+int rxvt_font_xft::get_wcwidth (FcChar32 ch)
+{
+  XGlyphInfo g;
+  XftTextExtents32 (term->dpy, f, &ch, 1, &g);
+
+  int w = g.xOff;
+  int r = (w + term->fwidth - term->fwidth/2) / term->fwidth;
+
+  return r;
 }
 
 void

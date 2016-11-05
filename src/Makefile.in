@@ -47,6 +47,7 @@ COMMON_DAEMON = rxvtdaemon.o
 RXVT_BINNAME=$(DESTDIR)$(bindir)/$(RXVTNAME)$(EXEEXT)
 RXVTC_BINNAME=$(DESTDIR)$(bindir)/$(RXVTNAME)c$(EXEEXT)
 RXVTD_BINNAME=$(DESTDIR)$(bindir)/$(RXVTNAME)d$(EXEEXT)
+RXVTWCWIDTH_LIBNAME=$(DESTDIR)$(libdir)/urxvt/rxvtwcwidth.so
 
 #
 # Distribution variables
@@ -63,7 +64,7 @@ RXVTD_BINNAME=$(DESTDIR)$(bindir)/$(RXVTNAME)d$(EXEEXT)
 
 all: allbin
 
-rxvt: rxvt.o $(COMMON)
+rxvt: rxvt.o rxvtwcwidth.so $(COMMON)
 	$(LINK) -o $@ rxvt.o $(COMMON) $(LIBS) $(XLIB) $(PERLLIB)
 
 rxvtd: rxvtd.o $(COMMON) $(COMMON_DAEMON)
@@ -130,6 +131,10 @@ install-bin: allbin
 	$(INSTALL_PROGRAM) rxvtc $(RXVTC_BINNAME)
 	$(INSTALL_PROGRAM) rxvtd $(RXVTD_BINNAME)
 
+install-wcwidth: rxvtwidth.so
+	$(INSTALL) -d $(DESTDIR)$(libdir)
+	$(INSTALL_DATA) $< $(RXVTWCWIDTH_LIBNAME)
+
 install: install-bin install-perl
 
 perlxsi.c: Makefile
@@ -140,6 +145,10 @@ rxvtperl.C: rxvtperl.xs iom_perl.h iom_perl.xs typemap typemap.iom
 
 rxvtperl.o: rxvtperl.C perlxsi.c
 	$(COMPILE) $(PERLFLAGS) -DLIBDIR="\"$(libdir)/urxvt\"" -c $<
+
+rxvtwcwidth.so: rxvtwcwidth.C
+	$(COMPILE) -frtti -ldl -lrt -shared -rdynamic -o $@ $<
+
 
 depend:
 	makedepend -f Makefile.in -I. -I.. -I../libptytty/src -I../libev -Y *.C *.xs >/dev/null 2>&1
@@ -289,3 +298,4 @@ rxvtperl.o: ../libptytty/src/estl.h emman.h rxvtfont.h rxvttoolkit.h
 rxvtperl.o: callback.h rxvtimg.h scrollbar.h ../libptytty/src/libptytty.h
 rxvtperl.o: rxvtperl.h hookinc.h rsinc.h optinc.h keyboard.h perlxsi.c
 rxvtperl.o: iom_perl.h
+rxvtwcwidth.so: ../config.h rxvt.h

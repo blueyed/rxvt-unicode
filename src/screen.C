@@ -787,6 +787,23 @@ rxvt_term::scr_scroll_text (int row1, int row2, int count) NOTHROW
   return count;
 }
 
+MapType wcwidth_cache;
+int
+rxvt_term::rxvt_wcwidth(wchar_t c) {
+  MapType::iterator it;
+  it = wcwidth_cache.find(c);
+  if(it == wcwidth_cache.end())
+  {
+    rxvt_fontset *fs = FONTSET (rstyle);
+    rxvt_font *f = (*fs)[fs->find_font_idx (c)];
+    int width = f->get_wcwidth(c);
+    wcwidth_cache[c] = width;
+    return width;
+  }
+  return it->second;
+}
+
+
 /* ------------------------------------------------------------------------- */
 /*
  * Add text given in <str> of length <len> to screen struct
@@ -896,7 +913,7 @@ rxvt_term::scr_add_lines (const wchar_t *str, int len, int minlines) NOTHROW
       // further replacements, as wcwidth might return -1 for the line
       // drawing characters below as they might be invalid in the current
       // locale.
-      int width = WCWIDTH (c);
+      int width = rxvt_wcwidth (c);
 
       if (ecb_unlikely (charsets [screen.charset] == '0')) // DEC SPECIAL
         {
@@ -3646,7 +3663,7 @@ rxvt_term::scr_overlay_set (int x, int y, const wchar_t *s) NOTHROW
   while (*s)
     {
       text_t t = *s++;
-      int width = WCWIDTH (t);
+      int width = rxvt_wcwidth (t);
 
       while (width--)
         {
