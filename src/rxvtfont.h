@@ -53,7 +53,7 @@ struct rxvt_font
   virtual bool load (const rxvt_fontprop &morph, bool force_prop) = 0;
   virtual bool has_char (uint32_t unicode, const rxvt_fontprop *prop, bool &careful) const = 0;
 
-  virtual int get_wcwidth (unicode_t unicode) = 0;
+  virtual int get_wcwidth (unicode_t unicode) const = 0;
   virtual void draw (rxvt_drawable &d,
                      int x, int y,
                      const text_t *text, int len,

@@ -328,7 +328,7 @@ struct rxvt_font_default : rxvt_font {
   }
 
   int
-  get_wcwidth (unicode_t unicode)
+  get_wcwidth (unicode_t unicode) const
   {
     return WCWIDTH(unicode);
   }
@@ -529,7 +529,7 @@ struct rxvt_font_overflow : rxvt_font {
 
   /* XXX: never used (only in my setup?!), but needs to be defined. */
   int
-  get_wcwidth (unicode_t unicode)
+  get_wcwidth (unicode_t unicode) const
   {
     int fid = fs->find_font_idx (unicode);
     return (*fs)[fid]->get_wcwidth(unicode);
@@ -567,7 +567,7 @@ struct rxvt_font_x11 : rxvt_font {
   bool has_char (unicode_t unicode, const rxvt_fontprop *prop, bool &careful) const;
 
   int
-  get_wcwidth (unicode_t unicode)
+  get_wcwidth (unicode_t unicode) const
   {
     return WCWIDTH(unicode);
   }
@@ -1155,7 +1155,7 @@ struct rxvt_font_xft : rxvt_font {
 
   bool load (const rxvt_fontprop &prop, bool force_prop);
 
-  int get_wcwidth (unicode_t unicode);
+  int get_wcwidth (unicode_t unicode) const;
   void draw (rxvt_drawable &d, int x, int y,
              const text_t *text, int len,
              int fg, int bg);
@@ -1362,7 +1362,7 @@ rxvt_font_xft::has_char (unicode_t unicode, const rxvt_fontprop *prop, bool &car
   XftTextExtents32 (term->dpy, f, &ch, 1, &g);
 
   int w = g.width - g.x;
-  int wcw = max (rxvt_wcwidth (unicode), 1);
+  int wcw = max (get_wcwidth (unicode), 1);
 
   careful = g.x > 0 || w > prop->width * wcw;
 
@@ -1376,15 +1376,22 @@ rxvt_font_xft::has_char (unicode_t unicode, const rxvt_fontprop *prop, bool &car
   return true;
 }
 
-int rxvt_font_xft::get_wcwidth (FcChar32 ch)
+int
+rxvt_font_xft::get_wcwidth (FcChar32 ch) const
 {
+  // Same speed optimization as with WCWIDTH.
+  if (IN_RANGE_INC (ch, 0x20, 0x7e))
+    return 1;
+
   XGlyphInfo g;
   XftTextExtents32 (term->dpy, f, &ch, 1, &g);
 
-  int w = g.xOff;
-  int r = (w + term->fwidth - term->fwidth/2) / term->fwidth;
+  // NOTE: use this method to handle (instead of g.xOff) to handle "🀄 "
+  // correctly.
+  int w = g.width - g.x;
+  int wcw = (w + term->fwidth - term->fwidth/2) / term->fwidth;
 
-  return r;
+  return max(wcw, 1);
 }
 
 void
