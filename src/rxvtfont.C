@@ -1162,6 +1162,9 @@ struct rxvt_font_xft : rxvt_font {
 
   bool has_char (unicode_t unicode, const rxvt_fontprop *prop, bool &careful) const;
 
+private:
+  int get_wcwidth_for_glyph (XGlyphInfo g) const;
+
 protected:
   XftFont *f;
 };
@@ -1345,6 +1348,14 @@ rxvt_font_xft::load (const rxvt_fontprop &prop, bool force_prop)
   return success;
 }
 
+int
+rxvt_font_xft::get_wcwidth_for_glyph (XGlyphInfo g) const
+{
+  int w = g.width - g.x;
+  int wcw = (w + term->fwidth - term->fwidth/2) / term->fwidth;
+  return max(wcw, 1);
+}
+
 bool
 rxvt_font_xft::has_char (unicode_t unicode, const rxvt_fontprop *prop, bool &careful) const
 {
@@ -1362,7 +1373,11 @@ rxvt_font_xft::has_char (unicode_t unicode, const rxvt_fontprop *prop, bool &car
   XftTextExtents32 (term->dpy, f, &ch, 1, &g);
 
   int w = g.width - g.x;
-  int wcw = max (get_wcwidth (unicode), 1);
+  // NOTE: using get_wcwidth_for_glyph here enables wide glyphs, although they
+  // might still be displayed (scaled down) in a single cell then.
+  // This is a crucial part already to improve handline of wide glyphs already,
+  // even when not using the wcwidth callback.
+  int wcw = get_wcwidth_for_glyph (g);
 
   careful = g.x > 0 || w > prop->width * wcw;
 
@@ -1385,13 +1400,7 @@ rxvt_font_xft::get_wcwidth (FcChar32 ch) const
 
   XGlyphInfo g;
   XftTextExtents32 (term->dpy, f, &ch, 1, &g);
-
-  // NOTE: use this method to handle (instead of g.xOff) to handle "🀄 "
-  // correctly.
-  int w = g.width - g.x;
-  int wcw = (w + term->fwidth - term->fwidth/2) / term->fwidth;
-
-  return max(wcw, 1);
+  return get_wcwidth_for_glyph(g);
 }
 
 void
