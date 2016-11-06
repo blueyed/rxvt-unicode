@@ -1392,29 +1392,29 @@ rxvt_term::wcwidth_reply_cb (ev::io &w, int revents)
 
   wchar_t query;
   int ret = recv(w.fd, &query, sizeof(wchar_t), 0);
-  if (ret == -1) {
+  if (ret == -1)
+  {
     perror("wcwidth_reply_cb: read");
-  } else if (ret == 0) {
-    fprintf(stderr, "no data received! Stopping!\n");
+  }
+  else
+  {
+    if (ret == 0)
+    {
+      fprintf(stderr, "no data received! Stopping!\n");
+    }
+    else
+    {
+      int width = rxvt_wcwidth(query);
+      ret = write(w.fd, &width, sizeof(int));
+      if (ret == -1) {
+        perror("wcwidth_reply_cb: write");
+      }
+#ifdef DEBUG_WCWIDTH
+      fprintf(stderr, "wcwidth_reply_cb: %lc => %i\n", query, width);
+#endif
+    }
     close(w.fd);
     wcwidth_reply_ev.stop();
-  } else {
-    int width = rxvt_wcwidth(query);
-#ifdef DEBUG_WCWIDTH
-    fprintf(stderr, "wcwidth_reply_cb: write: %lc => %i\n", query, width);
-#endif
-
-    ret = write(w.fd, &width, sizeof(int));
-    if (ret == -1) {
-      perror("wcwidth_reply_cb: write");
-      close(w.fd);
-      wcwidth_reply_ev.stop();
-    } else {
-      close(w.fd);
-    }
-#ifdef DEBUG_WCWIDTH
-    fprintf(stderr, "wcwidth_reply_cb: %lc => %i\n", query, width);
-#endif
   }
 }
 
