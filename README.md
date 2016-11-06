@@ -25,12 +25,16 @@ There is caching in place in both the shared library and
 
 ## Installation
 
-There is no `configure` switch for it yet, so you can do the normal
-`./configure`, e.g.
+There is no (working) `configure` switch to enable/disable it yet, so you can
+do the normal `./configure`, e.g.
 
     ./configure --enable-unicode3 --enable-256-color --disable-smart-resize
 
-See README.configure for other options.
+There is however `--enable-debug-wcwidth`, which will output debugging
+information to stderr, from where rxvt-unicode was started from.  It is
+recommended to enable it to get a feeling about what is going on.
+
+See README.configure for the general/other options.
 
 A PKGBUILD for Arch is available at:
 https://github.com/blueyed/PKGBUILD-rxvt-unicode-wcwidthcallback
@@ -59,3 +63,4 @@ In the end this could be set automatically.
  - Handle chars carefully where the system wcwidth and rxvt-unicode's
    get_wcwidth disagree.
  - Can /etc/ld.so.conf.d or another method be used instead of LD_PRELOAD?!
+ - Wrap code with `#ifdef ENABLE_WCWIDTHCALLBACK`

@@ -97,6 +97,7 @@ support_8bitctrls=no
 support_iso14755=yes
 support_styles=yes
 support_perl=yes
+# support_wcwidthcallback=yes
 codesets=all
 
 dnl# --------------------------------------------------------------------------
@@ -133,6 +134,7 @@ AC_ARG_ENABLE(everything,
        support_iso14755=no
        support_styles=no
        support_perl=no
+       # support_wcwidthcallback=no
        codesets=
     fi
     if test x$enableval = xyes; then
@@ -161,6 +163,7 @@ AC_ARG_ENABLE(everything,
        support_iso14755=yes
        support_styles=yes
        support_perl=yes
+       # support_wcwidthcallback=yes
        codesets=all
     fi
   ])
@@ -272,6 +275,23 @@ AC_ARG_ENABLE(perl,
   [if test x$enableval = xyes -o x$enableval = xno; then
     support_perl=$enableval
   fi])
+
+# TODO
+# AC_ARG_ENABLE(wcwidthcallback,
+#   [  --enable-wcwidthcallback enable wcwidth callback],
+#   [if test x$enableval = xyes -o x$enableval = xno; then
+#     support_wcwidthcallback=$enableval
+#   fi])
+
+support_debugwcwidth=no
+AC_ARG_ENABLE(debug-wcwidth,
+  [  --enable-debug-wcwidth  enable debugging for wcwidthcallback],
+  [if test x$enableval = xyes; then
+    support_debugwcwidth=yes
+  fi])
+if test x$support_debugwcwidth = xyes; then
+  AC_DEFINE(DEBUG_WCWIDTH, 1, Enable debugging for wcwidthcallback)
+fi
 
 AC_ARG_WITH(codesets,
   [  --with-codesets=CS,...  compile in additional codesets (jp,jp_ext,kr,zh,zh_ext,all)],
@@ -700,6 +720,10 @@ fi
 if test x$support_combining = xyes; then
   AC_DEFINE(ENABLE_COMBINING, 1, Define if you want to automatically compose combining characters)
 fi
+# TODO: ifdefs
+# if test x$support_wcwidthcallback = xyes; then
+#   AC_DEFINE(ENABLE_WCWIDTHCALLBACK, 1, Define if you want to use the wcwidth callback)
+# fi
 if test x$codesets = xall; then
   codesets=jp,jp-ext,kr,zh,zh-ext
 fi

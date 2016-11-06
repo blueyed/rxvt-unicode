@@ -1,5 +1,8 @@
 /* config.h.in.  Generated from configure.ac by autoheader.  */
 
+/* Enable debugging for wcwidthcallback */
+#undef DEBUG_WCWIDTH
+
 /* Define if you want 8 bit control sequences */
 #undef EIGHT_BIT_CONTROLS
 
