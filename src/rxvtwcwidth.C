@@ -23,6 +23,7 @@
 
 #include "rxvtwcwidth.h"
 
+int HAS_SOCKET = 1;
 MapType wcwidth_cache;
 
 typedef int (*orig_wcwidth_f_type)(wchar_t c);
@@ -39,18 +40,29 @@ int _wcwidth(wchar_t c)
 {
   const char *wcwidth_socket_name = getenv("RXVT_WCWIDTH_SOCKET");
   if (!wcwidth_socket_name) {
-#ifdef DEBUG_WCWIDTH_CLIENT
-    // TODO: use global to display errors only once.
-    fprintf(stderr, "RXVT_WCWIDTH_SOCKET is not set.\n");
+    if (HAS_SOCKET) {
+#ifdef DEBUG_WCWIDTH
+      fprintf(stderr, "RXVT_WCWIDTH_SOCKET is not set (pid %d). Using orig_wcwidth.\n",
+          getpid());
 #endif
+      HAS_SOCKET = 0;
+    }
     return orig_wcwidth(c);
   }
 
-  /* Cached? */
-  MapType::iterator it;
-  it = wcwidth_cache.find(c);
-  if(it != wcwidth_cache.end()) {
-    return it->second;
+  if (!HAS_SOCKET) {
+    fprintf(stderr, "RXVT_WCWIDTH_SOCKET activated again (pid %d).\n", getpid());
+    HAS_SOCKET = 1;
+    wcwidth_cache.clear();
+  }
+  else
+  {
+    /* Cached? */
+    MapType::iterator it;
+    it = wcwidth_cache.find(c);
+    if(it != wcwidth_cache.end()) {
+      return it->second;
+    }
   }
 
 #ifdef DEBUG_WCWIDTH_CLIENT
@@ -73,29 +85,36 @@ int _wcwidth(wchar_t c)
   orig_flags = fcntl(wcwidth_socket_fd, F_GETFL);
   fcntl(wcwidth_socket_fd, F_SETFL, orig_flags | O_NONBLOCK);
 
-  if (-1 == connect(wcwidth_socket_fd, (struct sockaddr *)&name, len)) {
-    fprintf(stderr, "Could not connect to socket %s: %s (%i)\n",
-        wcwidth_socket_name, strerror(errno), errno);
-    if (errno == EINPROGRESS) {
+  if (-1 == connect(wcwidth_socket_fd, (struct sockaddr *)&name, len))
+  {
+    if (errno == EINPROGRESS)
+    {
+#ifdef DEBUG_WCWIDTH
+      fprintf(stderr, "EINPROGRESS in connect() - selecting\n");
+#endif
       struct timeval tv;
       fd_set myset;
-      fprintf(stderr, "EINPROGRESS in connect() - selecting\n");
-      do {
+      do
+      {
         tv.tv_sec = 1;
         tv.tv_usec = 0;
         FD_ZERO(&myset);
         FD_SET(wcwidth_socket_fd, &myset);
         int ret = select(wcwidth_socket_fd+1, NULL, &myset, NULL, &tv);
-        if (ret < 0 && errno != EINTR) {
+        if (ret < 0 && errno != EINTR)
+        {
           perror("Error connecting");
           return orig_wcwidth(c);
         }
-        else if (ret > 0) {
+        else if (ret > 0)
+        {
           // Socket selected for write
           socklen_t lon;
           lon = sizeof(int);
           int valopt;
-          if (getsockopt(wcwidth_socket_fd, SOL_SOCKET, SO_ERROR, (void*)(&valopt), &lon) < 0) {
+          if (getsockopt(wcwidth_socket_fd, SOL_SOCKET, SO_ERROR,
+                         (void*)(&valopt), &lon) < 0)
+          {
             perror("getsockopt");
             return orig_wcwidth(c);
           }
@@ -112,23 +131,14 @@ int _wcwidth(wchar_t c)
         }
       } while (1);
     }
-    perror("connect");
-    return orig_wcwidth(c);
+    else
+    {
+      fprintf(stderr, "Could not connect to socket %s: %s\n",
+          wcwidth_socket_name, strerror(errno));
+      return orig_wcwidth(c);
+    }
   }
   fcntl(wcwidth_socket_fd, F_SETFL, orig_flags);
-
-
-  struct timeval timeout;
-  timeout.tv_sec = 1;
-  timeout.tv_usec = 0;
-
-  if (setsockopt (wcwidth_socket_fd, SOL_SOCKET, SO_RCVTIMEO, (char *)&timeout,
-        sizeof(timeout)) < 0)
-    perror("setsockopt failed\n");
-
-  if (setsockopt (wcwidth_socket_fd, SOL_SOCKET, SO_SNDTIMEO, (char *)&timeout,
-        sizeof(timeout)) < 0)
-    perror("setsockopt failed\n");
 
 
 #ifdef DEBUG_WCWIDTH_CLIENT
