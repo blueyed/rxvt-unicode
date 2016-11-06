@@ -1176,7 +1176,8 @@ struct rxvt_term : zero_initialized, rxvt_vars, rxvt_screen
   int wcwidth_data_socket;
   char * wcwidth_socket_name;
   int wcwidth_socket_fd;
-  time_t wcwidth_last_request;
+  time_t wcwidth_last_request = 0;
+  time_t wcwidth_last_request_debug = -1;
 
   void vt_select_input () const NOTHROW
   {

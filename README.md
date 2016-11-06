@@ -50,9 +50,10 @@ In the end this could be set automatically.
    others after all?!
  - The code needs to be reviewed to ensure that there is no performance
    regression, especially when not using the mechanism at all.
- - only use `get_wcwidth` when the terminal has the LD_PRELOAD, i.e. when the
-   callback has been used?!  Does not guarantee that it actually works, i.e.
-   when the shell used it, but the started program does not.
+ - Improve detection of our callback being used, i.e. the shell has used it,
+   but the program in it has not.  This gets done in a rudimentary way in
+   `rxvt_term::scr_add_lines` already; both for the internal width, and when
+   NOCHAR is being replaced (e.g. Vim writing the Space after a wide glyph).
    Also when using tmux, you might attach a client where the server has not
    loaded it.
  - Handle chars carefully where the system wcwidth and rxvt-unicode's

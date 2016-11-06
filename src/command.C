@@ -1387,9 +1387,8 @@ rxvt_term::wcwidth_cb (ev::io &w, int revents)
 void
 rxvt_term::wcwidth_reply_cb (ev::io &w, int revents)
 {
-#ifdef DEBUG_WCWIDTH
-  fprintf(stderr, "wcwidth_reply_cb: %d (revents: %i)\n", w.fd, revents);
-#endif
+  if (!wcwidth_last_request)
+    wcwidth_last_request = time(0);
 
   wchar_t query;
   int ret = recv(w.fd, &query, sizeof(wchar_t), 0);

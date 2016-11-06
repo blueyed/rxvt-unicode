@@ -914,7 +914,21 @@ rxvt_term::scr_add_lines (const wchar_t *str, int len, int minlines) NOTHROW
       // further replacements, as wcwidth might return -1 for the line
       // drawing characters below as they might be invalid in the current
       // locale.
-      int width = rxvt_wcwidth (c);
+      int width;
+      if (wcwidth_last_request)
+        width = rxvt_wcwidth (c);
+      else
+      {
+        width = WCWIDTH (c);
+#ifdef DEBUG_WCWIDTH
+        if (wcwidth_last_request != wcwidth_last_request_debug)
+        {
+          fprintf(stderr, "wcwidth: not using rxvt_wcwidth, since no LD_PRELOAD request was done yet (%lc) => %i\n",
+              c, width);
+          wcwidth_last_request_debug = wcwidth_last_request;
+        }
+#endif
+      }
 
       if (ecb_unlikely (charsets [screen.charset] == '0')) // DEC SPECIAL
         {
@@ -981,9 +995,35 @@ rxvt_term::scr_add_lines (const wchar_t *str, int len, int minlines) NOTHROW
           // TODO: improve this, based on if rxvt-unicode's get_wcwidth and
           //       wcwidth disagree?!  (but still no guarantee that wcwidth is
           //       used, e.g. Vim uses its own method by default).
-          //       There could also be special handling for Space here.
+          //       For this we could store RS_wcw_from_us in `rend`, but that
+          //       is going overboard for now, and does not cover when only
+          //       the callback was used actually.
           if (ecb_unlikely (line->t[screen.cur.col] == NOCHAR)) {
-            scr_set_char_rend (*line, screen.cur.col, rend ^ RS_redraw);
+            if (wcwidth_last_request)
+            {
+              if (c == ' ') {
+                rend = line->r[screen.cur.col];
+                c = NOCHAR;
+#if DEBUG_WCWIDTH
+                fprintf(stderr, "Keeping NOCHAR for space at %d/%d\n",
+                        screen.cur.row, screen.cur.col);
+#endif
+              }
+              else
+              {
+#if DEBUG_WCWIDTH
+                fprintf(stderr, "Redrawing from %d/%d for overwriting NOCHAR with '%lc'\n",
+                        screen.cur.row, screen.cur.col, c);
+#endif
+                scr_set_char_rend (*line, screen.cur.col, rend ^ RS_redraw);
+              }
+            }
+            else
+            {
+              fprintf(stderr, "Killing wide char for NOCHAR from %d/%d\n",
+                  screen.cur.row, screen.cur.col);
+              scr_kill_char (*line, screen.cur.col);
+            }
           }
 
           line->touch ();
@@ -1011,6 +1051,10 @@ rxvt_term::scr_add_lines (const wchar_t *str, int len, int minlines) NOTHROW
           // pad with spaces when overwriting wide character with smaller one
           for (int c = screen.cur.col; ecb_unlikely (c < ncol && line->t[c] == NOCHAR); c++)
             {
+#if DEBUG_WCWIDTH
+              fprintf(stderr, "Overwriting wide char with space at %d/%d\n",
+                  screen.cur.row, c);
+#endif
               line->t[c] = ' ';
               line->r[c] = rend;
             }
