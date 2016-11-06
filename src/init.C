@@ -1710,6 +1710,10 @@ rxvt_term::run_child (const char *const *argv)
   signal (SIGTTOU, SIG_IGN);
 #endif /* SIGTSTP */
 
+#ifdef WCWIDTH_ADDPRELOAD
+  putenv ("LD_PRELOAD=" LIBDIR "/rxvtwcwidth.so");
+#endif
+
   /* command interpreter path */
   if (argv)
     {

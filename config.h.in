@@ -415,6 +415,9 @@
 /* Define if you want to have utmp/utmpx support */
 #undef UTMP_SUPPORT
 
+/* Enable adding LD_PRELOAD for wcwidthcallback */
+#undef WCWIDTH_ADDPRELOAD
+
 /* Define if you want to have wtmp support when utmp/utmpx is enabled */
 #undef WTMP_SUPPORT
 

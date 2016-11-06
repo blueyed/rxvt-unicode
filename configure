@@ -725,6 +725,7 @@ enable_rxvt_scroll
 enable_next_scroll
 enable_xterm_scroll
 enable_perl
+enable_wcwidthpreload
 enable_debug_wcwidth
 with_codesets
 enable_xim
@@ -1399,6 +1400,7 @@ Optional Features:
   --enable-next-scroll    enable NeXT style scrollbar
   --enable-xterm-scroll   enable Xterm style scrollbar
   --enable-perl           enable embedded perl interpreter
+  --enable-wcwidthpreload enable adding LD_PRELOAD for wcwidthcallback
   --enable-debug-wcwidth  enable debugging for wcwidthcallback
   --enable-xim            XIM (X Input Method) protocol support
   --disable-backspace-key disable handling of the backspace key
@@ -4984,6 +4986,20 @@ fi
 #   [if test x$enableval = xyes -o x$enableval = xno; then
 #     support_wcwidthcallback=$enableval
 #   fi])
+
+support_wcwidthpreload=no
+# Check whether --enable-wcwidthpreload was given.
+if test "${enable_wcwidthpreload+set}" = set; then :
+  enableval=$enable_wcwidthpreload; if test x$enableval = xyes; then
+    support_wcwidthpreload=yes
+  fi
+fi
+
+if test x$support_wcwidthpreload = xyes; then
+
+$as_echo "#define WCWIDTH_ADDPRELOAD 1" >>confdefs.h
+
+fi
 
 support_debugwcwidth=no
 # Check whether --enable-debug-wcwidth was given.

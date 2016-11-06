@@ -283,6 +283,16 @@ AC_ARG_ENABLE(perl,
 #     support_wcwidthcallback=$enableval
 #   fi])
 
+support_wcwidthpreload=no
+AC_ARG_ENABLE(wcwidthpreload,
+  [  --enable-wcwidthpreload enable adding LD_PRELOAD for wcwidthcallback],
+  [if test x$enableval = xyes; then
+    support_wcwidthpreload=yes
+  fi])
+if test x$support_wcwidthpreload = xyes; then
+  AC_DEFINE(WCWIDTH_ADDPRELOAD, 1, Enable adding LD_PRELOAD for wcwidthcallback)
+fi
+
 support_debugwcwidth=no
 AC_ARG_ENABLE(debug-wcwidth,
   [  --enable-debug-wcwidth  enable debugging for wcwidthcallback],

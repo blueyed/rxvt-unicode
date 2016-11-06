@@ -17,8 +17,9 @@ With this patch rxvt-unicode asks the font about the actual width (in
 `rxvt_term::scr_add_lines`, via `rxvt_term::rxvt_wcwidth` and
 `rxvt_font_xft::get_wcwidth`).
 
-rxvtwcwidth.so is then used to overwrite `wcwidth` and `wcswidth` for client
-programs (via `LD_PRELOAD`), and asks rxvt-unicode through a Unix socket.
+rxvtwcwidth.so is then used to override/provide `wcwidth` and `wcswidth` for
+client programs (via `LD_PRELOAD`), and asks rxvt-unicode through a Unix
+socket.
 
 There is caching in place in both the shared library and
 `rxvt_term::rxvt_wcwidth`.  TODO: This needs to be cleaned up / improved.
@@ -34,6 +35,9 @@ There is however `--enable-debug-wcwidth`, which will output debugging
 information to stderr, from where rxvt-unicode was started from.  It is
 recommended to enable it to get a feeling about what is going on.
 
+`--enable-wcwidthpreload` can be used to automatically set `LD_PRELOAD` for the
+rxvt-unicode client.
+
 See README.configure for the general/other options.
 
 A PKGBUILD for Arch is available at:
@@ -47,7 +51,13 @@ installed rxvt-unicode):
 
     export LD_PRELOAD=/usr/local/lib/urxvt/rxvtwcwidth.so
 
-In the end this could be set automatically.
+This can be enabled to be done automatically through the
+`--enable-wcwidthpreload` `configure` option, but you might want to enable it
+manually for testing purposes / more control.
+
+The `RXVT_WCWIDTH_SOCKET` environment variable is used from the
+`rxvtwcwidth.so` to connect to the socket.
+(Un)setting it will automatically disable/enable the callback.
 
 ## TODO
  - currently only Xft fonts are handled.  I don't know if it makes sense for

@@ -147,8 +147,12 @@ rxvtperl.C: rxvtperl.xs iom_perl.h iom_perl.xs typemap typemap.iom
 rxvtperl.o: rxvtperl.C perlxsi.c
 	$(COMPILE) $(PERLFLAGS) -DLIBDIR="\"$(libdir)/urxvt\"" -c $<
 
+init.o: init.C
+	$(COMPILE) -DLIBDIR="\"$(libdir)/urxvt\"" -c $<
+
 # TODO: verify/check options!
-# $(COMPILE) -fPIC -frtti -ldl -lrt -shared -rdynamic -o $@ $<
+# -fPIC is required.
+# Others? -frtti -ldl -lrt -shared -rdynamic
 rxvtwcwidth.so: rxvtwcwidth.C
 	$(COMPILE) -fPIC -ldl -shared -o $@ $<
 
