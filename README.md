@@ -1,7 +1,10 @@
 # Modified rxvt-unicode to get widths of glyphs from the font itself
 
 This is an experimental/modified version of rxvt-unicode to fix issues with
-wide glyphs.
+wide glyphs, which normally end up being displayed as rectangular or square
+boxes (depending on what wcwidth(3) returns).  This is the same symbol that
+rxvt-unicode uses when a glyph/character is not provided by any font, but in
+this case it is normally considered to be too wide.
 
 ## The problem with wcwidth(3)
 
@@ -58,6 +61,25 @@ manually for testing purposes / more control.
 The `RXVT_WCWIDTH_SOCKET` environment variable is used from the
 `rxvtwcwidth.so` to connect to the socket.
 (Un)setting it will automatically disable/enable the callback.
+
+## Application notes
+
+### (Neo)Vim
+
+Vim/Neovim uses its own internal functions, and you have to define
+`USE_WCHAR_FUNCTIONS` when building them to enable the wcwidth callback.
+However, it will work better already without it: the wide glyphs get displayed,
+and will even cover 2 cells when followed by a space.
+
+## History
+
+I have initially used another method myself for a while, which required to
+have whitespace after wide glyphs, but it caused a crash for some people.
+Instead of fixing what I could not reproduce myself, I have created this.
+
+References:
+ - http://lists.schmorp.de/pipermail/rxvt-unicode/2014q4/002042.html
+ - https://github.com/blueyed/rxvt-unicode/compare/display-wide-glyphs
 
 ## TODO
  - currently only Xft fonts are handled.  I don't know if it makes sense for
