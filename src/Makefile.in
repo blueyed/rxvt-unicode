@@ -133,7 +133,7 @@ install-bin: allbin
 	$(INSTALL_PROGRAM) rxvtd $(RXVTD_BINNAME)
 
 install-wcwidth: rxvtwcwidth.so
-	$(INSTALL) -d $(DESTDIR)$(libdir)
+	$(INSTALL) -d $(RXVTWCWIDTH_LIBNAME))
 	$(INSTALL_DATA) $< $(RXVTWCWIDTH_LIBNAME)
 
 install: install-bin install-perl install-wcwidth
