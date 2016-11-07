@@ -23,7 +23,7 @@
 
 #include "rxvtwcwidth.h"
 
-int HAS_SOCKET = 1;
+int SOCKET_STATUS = -1;
 MapType wcwidth_cache;
 
 typedef int (*orig_wcwidth_f_type)(wchar_t c);
@@ -39,20 +39,29 @@ orig_wcwidth(wchar_t c)
 int _wcwidth(wchar_t c)
 {
   const char *wcwidth_socket_name = getenv("RXVT_WCWIDTH_SOCKET");
-  if (!wcwidth_socket_name) {
-    if (HAS_SOCKET) {
+  if (!wcwidth_socket_name)
+  {
+    if (SOCKET_STATUS == -1)
+    {
 #ifdef DEBUG_WCWIDTH
       fprintf(stderr, "RXVT_WCWIDTH_SOCKET is not set (pid %d). Using orig_wcwidth.\n",
           getpid());
 #endif
-      HAS_SOCKET = 0;
     }
+    SOCKET_STATUS = 0;
     return orig_wcwidth(c);
   }
+  /*
+   * connect errors etc, allowing to re-activate by via setting and unsetting
+   * the socket name.
+   */
+  if (SOCKET_STATUS == -2)
+    return orig_wcwidth(c);
 
-  if (!HAS_SOCKET) {
+  if (SOCKET_STATUS == 0)
+  {
     fprintf(stderr, "RXVT_WCWIDTH_SOCKET activated again (pid %d).\n", getpid());
-    HAS_SOCKET = 1;
+    SOCKET_STATUS = 1;
     wcwidth_cache.clear();
   }
   else
@@ -70,7 +79,8 @@ int _wcwidth(wchar_t c)
 #endif
   int wcwidth_socket_fd = socket(AF_UNIX, SOCK_SEQPACKET, 0);
   if (wcwidth_socket_fd == -1) {
-    perror("socket");
+    perror("wcwidth: could not open socket");
+    SOCKET_STATUS = -2;
     return orig_wcwidth(c);
   }
 
@@ -104,7 +114,6 @@ int _wcwidth(wchar_t c)
         if (ret < 0 && errno != EINTR)
         {
           perror("Error connecting");
-          return orig_wcwidth(c);
         }
         else if (ret > 0)
         {
@@ -116,25 +125,28 @@ int _wcwidth(wchar_t c)
                          (void*)(&valopt), &lon) < 0)
           {
             perror("getsockopt");
-            return orig_wcwidth(c);
           }
-          // Check the value returned...
-          if (valopt) {
-            perror("Error in delayed connection()");
-            return orig_wcwidth(c);
+          else if (!valopt)
+          {
+            // Success.
+            break;
           }
-          break;
+          perror("Error in delayed connection()");
         }
         else {
           perror("Timeout in select() - Cancelling!");
-          return orig_wcwidth(c);
         }
+        SOCKET_STATUS = -2;
+        close(wcwidth_socket_fd);
+        return orig_wcwidth(c);
       } while (1);
     }
     else
     {
       fprintf(stderr, "Could not connect to socket %s: %s\n",
           wcwidth_socket_name, strerror(errno));
+      SOCKET_STATUS = -2;
+      close(wcwidth_socket_fd);
       return orig_wcwidth(c);
     }
   }
@@ -145,24 +157,30 @@ int _wcwidth(wchar_t c)
   fprintf(stderr, "_wcwidth: sending query: %lc\n", c);
 #endif
   int ret = write(wcwidth_socket_fd, &c, sizeof(wchar_t));
+  int width;
   if (ret == -1) {
     perror("write");
-    return orig_wcwidth(c);
+    width = orig_wcwidth(c);
   }
-
+  else
+  {
 #ifdef DEBUG_WCWIDTH_CLIENT
-  fprintf(stderr, "_wcwidth: reading answer\n");
+    fprintf(stderr, "_wcwidth: reading answer\n");
 #endif
-  int width;
     ret = read(wcwidth_socket_fd, &width, sizeof(int));
-    if (ret == -1) {
+    if (ret == -1)
+    {
         perror("read");
-        return orig_wcwidth(c);
+        width = orig_wcwidth(c);
     }
+    else
+    {
 #ifdef DEBUG_WCWIDTH_CLIENT
-  fprintf(stderr, "_wcwidth: read: %i\n", width);
+      fprintf(stderr, "_wcwidth: read: %i\n", width);
 #endif
-  wcwidth_cache[c] = width;
+      wcwidth_cache[c] = width;
+    }
+  }
   close(wcwidth_socket_fd);
   return width;
 }
