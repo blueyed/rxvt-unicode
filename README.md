@@ -82,6 +82,8 @@ References:
  - https://github.com/blueyed/rxvt-unicode/compare/display-wide-glyphs
 
 ## TODO
+ - consider using AF_INET also?!  If staying with AF_UNIX, it could require
+   urxvtd/urxvtc and use its RXVT_SOCKET probably?!
  - currently only Xft fonts are handled.  I don't know if it makes sense for
    others after all?!
  - The code needs to be reviewed to ensure that there is no performance
