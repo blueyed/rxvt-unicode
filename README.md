@@ -43,8 +43,8 @@ rxvt-unicode client.
 
 See README.configure for the general/other options.
 
-A PKGBUILD for Arch is available at:
-https://github.com/blueyed/PKGBUILD-rxvt-unicode-wcwidthcallback
+A package for Arch Linux is available in the AUR:
+https://aur.archlinux.org/packages/rxvt-unicode-wcwidthcallback
 
 ### Setup
 
