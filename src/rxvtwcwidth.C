@@ -38,6 +38,21 @@ orig_wcwidth(wchar_t c)
 
 int _wcwidth(wchar_t c)
 {
+  int orig_width;
+
+  // Handle zero-width combining characters (e.g. \u0301) properly first,
+  // but calling the original wcwidth(3).
+  // This is used by zsh's ./configure to detect brokwn wcwidth.  We would
+  // report 1 for it via e.g. "DejaVu Sans Mono".
+  orig_width = orig_wcwidth(c);
+  if (orig_width < 1)
+  {
+#ifdef DEBUG_WCWIDTH_CLIENT
+    fprintf(stderr, "_wcwidth: using orig_width for %lc: %i\n", c, orig_width);
+#endif
+    return orig_width;
+  }
+
   const char *wcwidth_socket_name = getenv("RXVT_WCWIDTH_SOCKET");
   if (!wcwidth_socket_name)
   {
@@ -49,14 +64,14 @@ int _wcwidth(wchar_t c)
 #endif
     }
     SOCKET_STATUS = 0;
-    return orig_wcwidth(c);
+    return orig_width;
   }
   /*
    * connect errors etc, allowing to re-activate by via setting and unsetting
    * the socket name.
    */
   if (SOCKET_STATUS == -2)
-    return orig_wcwidth(c);
+    return orig_width;
 
   if (SOCKET_STATUS == 0)
   {
@@ -81,7 +96,7 @@ int _wcwidth(wchar_t c)
   if (wcwidth_socket_fd == -1) {
     perror("wcwidth: could not open socket");
     SOCKET_STATUS = -2;
-    return orig_wcwidth(c);
+    return orig_width;
   }
 
   /* Bind socket to socket name. */
@@ -138,7 +153,7 @@ int _wcwidth(wchar_t c)
         }
         SOCKET_STATUS = -2;
         close(wcwidth_socket_fd);
-        return orig_wcwidth(c);
+        return orig_width;
       } while (1);
     }
     else
@@ -147,7 +162,7 @@ int _wcwidth(wchar_t c)
           wcwidth_socket_name, strerror(errno));
       SOCKET_STATUS = -2;
       close(wcwidth_socket_fd);
-      return orig_wcwidth(c);
+      return orig_width;
     }
   }
   fcntl(wcwidth_socket_fd, F_SETFL, orig_flags);
@@ -160,7 +175,7 @@ int _wcwidth(wchar_t c)
   int width;
   if (ret == -1) {
     perror("write");
-    width = orig_wcwidth(c);
+    width = orig_width;
   }
   else
   {
@@ -171,7 +186,7 @@ int _wcwidth(wchar_t c)
     if (ret == -1)
     {
         perror("read");
-        width = orig_wcwidth(c);
+        width = orig_width;
     }
     else
     {
