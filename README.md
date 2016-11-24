@@ -30,9 +30,8 @@ There is caching in place in both the shared library and
 ## Installation
 
 There is no (working) `configure` switch to enable/disable it yet, so you can
-do the normal `./configure`, e.g.
-
-    ./configure --enable-unicode3 --enable-256-color --disable-smart-resize
+do the normal `./configure`, see README.configure for the general/other
+options.
 
 There is however `--enable-debug-wcwidth`, which will output debugging
 information to stderr, from where rxvt-unicode was started from.  It is
@@ -40,8 +39,6 @@ recommended to enable it to get a feeling about what is going on.
 
 `--enable-wcwidthpreload` can be used to automatically set `LD_PRELOAD` for the
 rxvt-unicode client.
-
-See README.configure for the general/other options.
 
 A package for Arch Linux is available in the AUR:
 https://aur.archlinux.org/packages/rxvt-unicode-wcwidthcallback
