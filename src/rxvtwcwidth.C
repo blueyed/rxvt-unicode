@@ -185,8 +185,18 @@ int _wcwidth(wchar_t c)
     ret = read(wcwidth_socket_fd, &width, sizeof(int));
     if (ret == -1)
     {
-        perror("read");
+#ifdef DEBUG_WCWIDTH_CLIENT
+      fprintf(stderr, "_wcwidth: read error: %s\n", strerror(errno));
+#endif
+      // Handle "Interrupted system call" once; might happen occasionally.
+      if (errno == EINTR)
+        ret = read(wcwidth_socket_fd, &width, sizeof(int));
+
+      if (ret == -1)
+      {
+        perror("_wcwidth: read");
         width = orig_width;
+      }
     }
     else
     {
